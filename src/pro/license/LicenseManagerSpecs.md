@@ -4,6 +4,8 @@
 
 ## Summary
 
+This fork sets `PersonalBuild` in its app bundle. Its shared manager starts in `.pro`, keeps every advanced feature available across clock changes and relaunches, and never starts a trial or performs license Keychain/API operations. Injected managers default to the upstream behavior for regression testing. `testPersonalBuildKeepsAllFeaturesAvailableWithoutLicenseIO` covers expired stored state, long elapsed time, relaunch and all license API entry points.
+
 `LicenseManager` is the single source of truth for whether the user has AltTab **Pro**. It computes a `LicenseState` and notifies observers when it changes. The state drives every Pro gate in the app (search, lock-search, extra shortcuts, App Icons / Titles styles, Auto size, search-on-release) and the Pro-transition prompts.
 
 Its collaborators are injected so the logic is testable without real I/O — the tests pass in mocks (`MockClock`, `MockKeychain`, `MockLicenseAPI`, all defined inline at the bottom of `LicenseManagerTests.swift`):

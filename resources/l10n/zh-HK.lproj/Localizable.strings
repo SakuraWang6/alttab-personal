@@ -361,3 +361,15 @@
 "Your feedback will be submitted as a public GitHub issue." = "您的意見將會以公開的 GitHub issue 形式提交。";
 "Your Pro trial starts when AltTab is ready" = "AltTab 準備就緒後，Pro 試用期即開始";
 "Your settings reset every time AltTab restarts." = "每次重新啟動 AltTab 時，你的設定都會重設。";
+
+/* Personal build */
+"All advanced features enabled" = "All advanced features enabled";
+"All appearance styles" = "All appearance styles";
+"Automatic panel sizing" = "Automatic panel sizing";
+"Enabled" = "Enabled";
+"Independent personal build based on AltTab’s GPL-3.0 source." = "Independent personal build based on AltTab’s GPL-3.0 source.";
+"Manual builds only" = "Manual builds only";
+"Multiple shortcut profiles" = "Multiple shortcut profiles";
+"No license key, trial period, or online activation is required." = "No license key, trial period, or online activation is required.";
+"Official automatic updates are disabled to preserve this personal build." = "Official automatic updates are disabled to preserve this personal build.";
+"Search windows by app name or title" = "Search windows by app name or title";

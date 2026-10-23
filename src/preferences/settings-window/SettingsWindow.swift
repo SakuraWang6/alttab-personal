@@ -166,6 +166,12 @@ final class UpgradeButton: ProGradientButton {
 
     func refreshTitle() {
         wrappedWidth = bounds.width
+        if LicenseManager.shared.isPersonalBuild {
+            toolTip = NSLocalizedString("All advanced features enabled", comment: "Personal build status")
+            applyTitle(secondary: NSLocalizedString("All advanced features enabled", comment: "Personal build status"),
+                main: Self.attributed("Personal", Self.mainFont), height: Self.twoLineHeight)
+            return
+        }
         let state = LicenseManager.shared.state
         if state == .trialNotStarted {
             toolTip = ProFeatureCopy.trialSetup
@@ -479,7 +485,7 @@ class SettingsWindow: NSWindow {
         icon.translatesAutoresizingMaskIntoConstraints = false
         icon.fit(Self.logoIconSize.width, Self.logoIconSize.height)
         let name = NSTextField(labelWithString: App.name)
-        name.font = .systemFont(ofSize: 15, weight: .semibold)
+        name.font = .systemFont(ofSize: LicenseManager.shared.isPersonalBuild ? 13 : 15, weight: .semibold)
         let logo = NSStackView(views: [icon, name])
         logo.translatesAutoresizingMaskIntoConstraints = false
         logo.spacing = 8

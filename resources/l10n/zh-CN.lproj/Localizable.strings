@@ -361,3 +361,13 @@
 "Your feedback will be submitted as a public GitHub issue." = "您的反馈将作为公开的 GitHub issue 提交。";
 "Your Pro trial starts when AltTab is ready" = "AltTab 准备就绪后，Pro 试用期即开始";
 "Your settings reset every time AltTab restarts." = "每次重新启动 AltTab 时，你的设置都会被重置。";
+"All advanced features enabled" = "所有高级功能均已启用";
+"Independent personal build based on AltTab’s GPL-3.0 source." = "基于 AltTab 的 GPL-3.0 开源代码构建的独立自用版。";
+"Search windows by app name or title" = "按应用名称或标题搜索窗口";
+"All appearance styles" = "全部外观样式";
+"Automatic panel sizing" = "面板大小自动调整";
+"Multiple shortcut profiles" = "多组快捷键配置";
+"Enabled" = "已启用";
+"No license key, trial period, or online activation is required." = "无需许可证密钥、试用期或在线激活。";
+"Manual builds only" = "仅手动构建更新";
+"Official automatic updates are disabled to preserve this personal build." = "此自用版已关闭官方自动更新。";

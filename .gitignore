@@ -6,11 +6,14 @@ WorkspaceSettings.xcsettings
 IDEWorkspaceChecks.plist
 /node_modules/
 /DerivedData/
+/DerivedData-Personal/
+/.personal-build/
 /build/
 /vendor/*/.build/
 /vendor/*/.swiftpm/
 /vendor/*/Package.resolved
 .DS_Store
+__pycache__/
 codesign.conf
 codesign.crt
 codesign.key

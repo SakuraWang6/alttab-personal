@@ -21,13 +21,17 @@ class AboutTab {
         appIcon.translatesAutoresizingMaskIntoConstraints = false
         appInfo.spacing = GridView.interPadding
         appInfo.alignment = .centerY
-        let supportProject = makeSupportProjectButton()
-        let rows = [[appInfo], [supportProject]]
+        let rows: [[NSView]]
+        if LicenseManager.shared.isPersonalBuild {
+            rows = [[appInfo], [NSTextField(wrappingLabelWithString: NSLocalizedString("Independent personal build based on AltTab’s GPL-3.0 source.", comment: "Personal build description"))]]
+        } else {
+            rows = [[appInfo], [makeSupportProjectButton()]]
+        }
         let grid = GridView(rows, 0)
         if centerHero {
             grid.cell(atColumnIndex: 0, rowIndex: 0).xPlacement = .center
         }
-        let supportProjectCell = grid.cell(atColumnIndex: 0, rowIndex: showFeedbackButton ? 2 : 1)
+        let supportProjectCell = grid.cell(atColumnIndex: 0, rowIndex: 1)
         supportProjectCell.xPlacement = .center
         if fitToContent {
             grid.fit()

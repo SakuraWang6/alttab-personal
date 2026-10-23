@@ -20,7 +20,8 @@ class LicenseManager {
             clock: SystemClock(),
             keychain: keychain,
             api: RemoteLicenseClient(baseUrl: Endpoints.licenseApiBaseUrl, keychain: keychain),
-            defaults: UserDefaults(suiteName: defaultsSuiteName)!
+            defaults: UserDefaults(suiteName: defaultsSuiteName)!,
+            isPersonalBuild: Bundle.main.object(forInfoDictionaryKey: "PersonalBuild") as? Bool ?? false
         )
     }()
 
@@ -41,6 +42,7 @@ class LicenseManager {
     let keychain: Keychain
     let api: LicenseAPI
     let defaults: UserDefaults
+    let isPersonalBuild: Bool
 
     /// Called whenever `state` changes (including the initial `initialize()` assignment).
     /// Production wires this up in App.swift to refresh Menubar, sync Sparkle cookie, and notify ProTransitionManager.
@@ -72,6 +74,7 @@ class LicenseManager {
     #endif
 
     var customerEmail: String? {
+        if isPersonalBuild { return nil }
         #if DEBUG
         if hasMockedLicense { return mockedCustomerEmail }
         #endif
@@ -79,6 +82,7 @@ class LicenseManager {
     }
 
     var isLifetimeVariant: Bool {
+        if isPersonalBuild { return true }
         #if DEBUG
         if hasMockedLicense { return mockedVariant.map(Self.lifetimeVariants.contains) ?? false }
         #endif
@@ -107,6 +111,7 @@ class LicenseManager {
     }
 
     var trialStartDate: Date? {
+        if isPersonalBuild { return nil }
         #if DEBUG
         if hasMockedLicense { return mockedTrialStartDate }
         #endif
@@ -137,11 +142,13 @@ class LicenseManager {
         return clock.now >= trialEndDate
     }
 
-    init(clock: Clock, keychain: Keychain, api: LicenseAPI, defaults: UserDefaults) {
+    init(clock: Clock, keychain: Keychain, api: LicenseAPI, defaults: UserDefaults, isPersonalBuild: Bool = false) {
         self.clock = clock
         self.keychain = keychain
         self.api = api
         self.defaults = defaults
+        self.isPersonalBuild = isPersonalBuild
+        if isPersonalBuild { state = .pro }
     }
 
     func initialize() {
@@ -160,6 +167,7 @@ class LicenseManager {
     /// Called after the switcher and input handlers exist, with the permission gate still satisfied.
     /// Reads and refreshes never start a trial; a saved start is immutable even after revocation or expiry.
     func onAppBecameUsable(accessibility: PermissionStatus, screenRecording: PermissionStatus) {
+        guard !isPersonalBuild else { return }
         guard PermissionFlow.isComplete(accessibility: accessibility, screenRecording: screenRecording) else { return }
         appIsUsable = true
         startTrialIfNeeded()
@@ -175,6 +183,7 @@ class LicenseManager {
     var onActivationSucceeded: () -> Void = {}
 
     func activate(_ licenseKey: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !isPersonalBuild else { completion(.success(())); return }
         api.activate(licenseKey) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -218,6 +227,7 @@ class LicenseManager {
     }
 
     func deactivate(completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !isPersonalBuild else { completion(.success(())); return }
         guard let licenseKey = keychain.value(account: Self.keychainKeyAccount),
               let instanceId = keychain.value(account: Self.keychainInstanceAccount) else {
             completion(.failure(LicenseAPIError.invalidKey))
@@ -247,12 +257,14 @@ class LicenseManager {
     /// Remote-deactivate a specific instance that isn't this machine — used to reclaim a seat
     /// before re-running activation. Does not touch local keychain/UserDefaults state.
     func deactivateInstance(licenseKey: String, instanceId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !isPersonalBuild else { completion(.success(())); return }
         api.deactivate(licenseKey, instanceId: instanceId) { result in
             DispatchQueue.main.async { completion(result) }
         }
     }
 
     func computeState() -> LicenseState {
+        if isPersonalBuild { return .pro }
         #if DEBUG
         if hasMockedLicense { return mockedTrialStartDate.map(trialState) ?? state }
         #endif
@@ -283,6 +295,7 @@ class LicenseManager {
     }
 
     func scheduleAsyncRevalidationIfNeeded() {
+        guard !isPersonalBuild else { return }
         let lastValidation = defaults.double(forKey: "lastValidation")
         let elapsed = clock.now.timeIntervalSince1970 - lastValidation
         guard elapsed >= Self.revalidationInterval else { return }
@@ -290,6 +303,7 @@ class LicenseManager {
     }
 
     func revalidateWithServer() {
+        guard !isPersonalBuild else { return }
         guard let licenseKey = keychain.value(account: Self.keychainKeyAccount),
               let instanceId = keychain.value(account: Self.keychainInstanceAccount) else { return }
         api.validate(licenseKey, instanceId: instanceId) { [weak self] result in

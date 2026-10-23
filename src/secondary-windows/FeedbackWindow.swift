@@ -363,7 +363,7 @@ class FeedbackWindow: NSWindow {
     }
 
     private func submit() {
-        guard !isSubmitting else { return }
+        guard !isSubmitting, !LicenseManager.shared.isPersonalBuild else { return }
         beginSubmitting()
         // Capture the kind that owns this submission. If the user navigates to the other kind
         // form while the POST is in flight, completion still clears the right draft slot.

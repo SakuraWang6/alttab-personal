@@ -25,6 +25,7 @@ class UpgradeTab {
     }
 
     private static func makeView() -> NSView {
+        if LicenseManager.shared.isPersonalBuild { return makePersonalView() }
         let header = makeHeaderStrip()
         journey = ProJourneyView(width: SettingsWindow.contentWidth - 2 * TableGroupView.padding)
         journey.spacing = 8
@@ -39,6 +40,27 @@ class UpgradeTab {
         stack.spacing = 8
         stack.setCustomSpacing(20, after: journey)
         return stack
+    }
+
+    private static func makePersonalView() -> NSView {
+        let table = TableGroupView(title: "AltTab Personal",
+            subTitle: NSLocalizedString("Independent personal build based on AltTab’s GPL-3.0 source.", comment: "Personal build description"),
+            width: SettingsWindow.contentWidth)
+        let features = [
+            NSLocalizedString("Search windows by app name or title", comment: "Personal build feature"),
+            NSLocalizedString("All appearance styles", comment: "Personal build feature"),
+            NSLocalizedString("Automatic panel sizing", comment: "Personal build feature"),
+            NSLocalizedString("Multiple shortcut profiles", comment: "Personal build feature"),
+        ]
+        for feature in features {
+            let status = TableGroupView.makeText(NSLocalizedString("Enabled", comment: "Personal feature status"))
+            status.textColor = .systemGreen
+            table.addRow(leftText: feature, rightViews: [status])
+        }
+        table.addNewTable()
+        table.addRow(leftText: NSLocalizedString("All advanced features enabled", comment: "Personal build status"),
+            subText: NSLocalizedString("No license key, trial period, or online activation is required.", comment: "Personal build status"))
+        return TableGroupSetView(originalViews: [table], padding: 0, bottomPadding: 0)
     }
 
     private static func makeActivateLinkRow() -> NSStackView {
@@ -90,7 +112,7 @@ class UpgradeTab {
 
     static func refreshStatus() {
         SettingsWindow.shared?.refreshUpgradeButton()
-        guard isInitialized else { return }
+        guard isInitialized, !LicenseManager.shared.isPersonalBuild else { return }
         journey.refresh()
         ProJourneyView.refreshIntroduction(introduction)
         switch LicenseManager.shared.state {
@@ -112,10 +134,18 @@ class UpgradeTab {
     }
 
     static func openAccountPage() {
+        if LicenseManager.shared.isPersonalBuild {
+            navigateToUpgradeTab()
+            return
+        }
         NSWorkspace.shared.open(URL(string: Endpoints.accountUrl)!)
     }
 
     static func presentActivationSheet(prefilledKey: String = "", autoFailedHint: Bool = false) {
+        if LicenseManager.shared.isPersonalBuild {
+            navigateToUpgradeTab()
+            return
+        }
         let alert = NSAlert()
         alert.alertStyle = autoFailedHint ? .warning : .informational
         alert.messageText = autoFailedHint

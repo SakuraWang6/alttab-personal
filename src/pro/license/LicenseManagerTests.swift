@@ -57,6 +57,47 @@ final class LicenseManagerTests: XCTestCase {
 
     // MARK: - Launch / initialize
 
+    func testPersonalBuildKeepsAllFeaturesAvailableWithoutLicenseIO() {
+        setupTrial(daysAgo: 365)
+        setupActivatedLicense(variantId: "pro")
+        defaults.set(false, forKey: "lastValidationResult")
+        keychain.readCount = 0
+        let personal = LicenseManager(clock: clock, keychain: keychain, api: api, defaults: defaults, isPersonalBuild: true)
+        XCTAssertEqual(personal.state, .pro)
+        personal.initialize()
+        personal.onAppBecameUsable(accessibility: .granted, screenRecording: .granted)
+        clock.advance(days: 10_000)
+        personal.refreshState()
+        personal.scheduleAsyncRevalidationIfNeeded()
+        personal.revalidateWithServer()
+        var completions = 0
+        let completed: (Result<Void, Error>) -> Void = { result in
+            completions += 1
+            if case .failure(let error) = result { XCTFail(String(describing: error)) }
+        }
+        personal.activate("unused", completion: completed)
+        personal.deactivate(completion: completed)
+        personal.deactivateInstance(licenseKey: "unused", instanceId: "unused", completion: completed)
+        XCTAssertEqual(completions, 3)
+        XCTAssertEqual(personal.state, .pro)
+        XCTAssertTrue(personal.isProAvailable)
+        XCTAssertTrue(personal.isLifetimeVariant)
+        XCTAssertFalse(personal.isProLocked)
+        XCTAssertFalse(personal.trialEndedSinceLastRefresh)
+        XCTAssertNil(personal.trialDay)
+        XCTAssertNil(personal.trialEndDate)
+        XCTAssertNil(personal.customerEmail)
+        XCTAssertEqual(keychain.readCount, 0)
+        XCTAssertTrue(api.activateCalls.isEmpty)
+        XCTAssertTrue(api.validateCalls.isEmpty)
+        XCTAssertTrue(api.deactivateCalls.isEmpty)
+        XCTAssertEqual(keychain.value(account: LicenseManager.keychainKeyAccount), "LICENSE-ABC")
+        XCTAssertFalse(defaults.bool(forKey: "lastValidationResult"))
+        let relaunched = LicenseManager(clock: clock, keychain: keychain, api: api, defaults: defaults, isPersonalBuild: true)
+        relaunched.initialize()
+        XCTAssertEqual(relaunched.state, .pro)
+    }
+
     private func becomeUsable() {
         manager.onAppBecameUsable(accessibility: .granted, screenRecording: .granted)
     }
@@ -723,10 +764,14 @@ final class MockClock: Clock {
 
 final class MockKeychain: Keychain {
     private var store: [String: String] = [:]
+    var readCount = 0
     var setValueStatus: (String) -> OSStatus = { _ in errSecSuccess }
     var removeStatus: (String) -> OSStatus = { _ in errSecSuccess }
 
-    func value(account: String) -> String? { store[account] }
+    func value(account: String) -> String? {
+        readCount += 1
+        return store[account]
+    }
 
     @discardableResult
     func setValue(_ value: String, account: String) -> OSStatus {

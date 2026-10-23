@@ -21,12 +21,6 @@ class GeneralTab {
             ])
         let language = TableGroupView.Row(leftTitle: NSLocalizedString("Language", comment: ""),
             rightViews: [LabelAndControl.makeDropdown("language", LanguagePreference.allCases, extraAction: setLanguageCallback)])
-        updatesPolicyDropdown = LabelAndControl.makeDropdown("updatePolicy", UpdatePolicyPreference.allCases)
-        let checkForUpdates = NSButton(title: NSLocalizedString("Check for updates now…", comment: ""), target: nil, action: nil)
-        checkForUpdates.onAction = { control in checkForUpdatesNow(control) }
-        crashPolicyDropdown = LabelAndControl.makeDropdown("crashPolicy", CrashPolicyPreference.allCases)
-        let crashPolicy = TableGroupView.Row(leftTitle: NSLocalizedString("Crash reports policy", comment: ""),
-            rightViews: [crashPolicyDropdown!])
         for i in 0..<MenubarIconPreference.allCases.count {
             let image = NSImage.initCopy("menubar-\(i)")
             image.isTemplate = MenubarIconPreference.allCases[i].isTemplate
@@ -47,12 +41,22 @@ class GeneralTab {
         table.addNewTable()
         table.addRow(language)
         table.addNewTable()
-        table.addRow(leftViews: [TableGroupView.makeText(NSLocalizedString("Updates policy", comment: ""))],
-            rightViews: [updatesPolicyDropdown!],
-            secondaryViews: [checkForUpdates],
-            secondaryViewsAlignment: .right,
-            secondaryViewsTopGap: 8)
-        table.addRow(crashPolicy)
+        if LicenseManager.shared.isPersonalBuild {
+            table.addRow(leftText: NSLocalizedString("Updates policy", comment: ""),
+                rightViews: [TableGroupView.makeText(NSLocalizedString("Manual builds only", comment: "Personal update policy"))],
+                subText: NSLocalizedString("Official automatic updates are disabled to preserve this personal build.", comment: "Personal update policy"))
+            table.addRow(leftText: NSLocalizedString("Crash reports policy", comment: ""),
+                rightViews: [TableGroupView.makeText(NSLocalizedString("Disabled", comment: "Personal crash policy"))])
+        } else {
+            updatesPolicyDropdown = LabelAndControl.makeDropdown("updatePolicy", UpdatePolicyPreference.allCases)
+            let checkForUpdates = NSButton(title: NSLocalizedString("Check for updates now…", comment: ""), target: nil, action: nil)
+            checkForUpdates.onAction = { control in checkForUpdatesNow(control) }
+            crashPolicyDropdown = LabelAndControl.makeDropdown("crashPolicy", CrashPolicyPreference.allCases)
+            table.addRow(leftViews: [TableGroupView.makeText(NSLocalizedString("Updates policy", comment: ""))],
+                rightViews: [updatesPolicyDropdown!], secondaryViews: [checkForUpdates],
+                secondaryViewsAlignment: .right, secondaryViewsTopGap: 8)
+            table.addRow(leftText: NSLocalizedString("Crash reports policy", comment: ""), rightViews: [crashPolicyDropdown!])
+        }
         let exportButton = NSButton(title: NSLocalizedString("Export settings…", comment: ""), target: nil, action: nil)
         exportButton.onAction = { _ in exportSettings() }
         let importButton = NSButton(title: NSLocalizedString("Import settings…", comment: ""), target: nil, action: nil)
@@ -97,6 +101,7 @@ class GeneralTab {
     }
 
     @objc static func checkForUpdatesNow(_ sender: Any?) {
+        guard !LicenseManager.shared.isPersonalBuild else { return }
         // The updater is lazy-started 30s after launch; if the user presses this button before
         // then, defensively start it first (idempotent — second call is a no-op).
         App.updaterController?.startUpdater()

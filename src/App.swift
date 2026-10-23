@@ -14,7 +14,7 @@ class App: AppCenterApplication {
     static let name = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as! String
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String
     static let licence = Bundle.main.object(forInfoDictionaryKey: "NSHumanReadableCopyright") as! String
-    static let repository = "https://github.com/lwouis/alt-tab-macos"
+    static let repository = "https://github.com/SakuraWang6/alttab-personal"
     static let appIcon: CGImage = {
         let url = Bundle.main.url(forResource: "app", withExtension: "png")!
         let source = CGImageSourceCreateWithURL(url as CFURL, nil)!
@@ -156,6 +156,10 @@ class App: AppCenterApplication {
     }
 
     @objc static func upgradeToPro() {
+        if LicenseManager.shared.isPersonalBuild {
+            UpgradeTab.navigateToUpgradeTab()
+            return
+        }
         ProTransitionManager.openCheckout(from: .menubar)
     }
 
@@ -164,6 +168,10 @@ class App: AppCenterApplication {
     }
 
     @objc static func showFeedbackPanel() {
+        if LicenseManager.shared.isPersonalBuild {
+            showDebugWindow()
+            return
+        }
         let wasFresh = FeedbackWindow.shared == nil
         initializeFeedbackWindowIfNeeded()
         // Fresh init already runs reset(); skip the redundant second call so we don't
@@ -572,18 +580,20 @@ class App: AppCenterApplication {
         // Needs the AX runloop `BackgroundWork.start()` created, so it cannot go with the launch-time setup.
         AxObserverRegistry.shared.startRecoveryTicks()
         CliEvents.observe()
-        App.sparkleDelegate = SparkleDelegate()
-        App.updaterController = SPUStandardUpdaterController(
-            startingUpdater: false,
-            updaterDelegate: App.sparkleDelegate!,
-            userDriverDelegate: nil)
-        #if DEBUG
-        if !Preferences.qaPristine && !QaLifecycle.enabled {
+        if !LicenseManager.shared.isPersonalBuild {
+            App.sparkleDelegate = SparkleDelegate()
+            App.updaterController = SPUStandardUpdaterController(
+                startingUpdater: false,
+                updaterDelegate: App.sparkleDelegate!,
+                userDriverDelegate: nil)
+            #if DEBUG
+            if !Preferences.qaPristine && !QaLifecycle.enabled {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 30) { App.updaterController?.startUpdater() }
+            }
+            #else
             DispatchQueue.main.asyncAfter(deadline: .now() + 30) { App.updaterController?.startUpdater() }
+            #endif
         }
-        #else
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { App.updaterController?.startUpdater() }
-        #endif
         PreferencesEvents.initialize()
         #if DEBUG
         BenchmarkRunner.startIfNeeded()
@@ -618,7 +628,7 @@ class App: AppCenterApplication {
 
 extension App: NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        App.appCenterDelegate = AppCenterCrash()
+        if !LicenseManager.shared.isPersonalBuild { App.appCenterDelegate = AppCenterCrash() }
         App.shared.disableRelaunchOnLogin()
         Logger.initialize()
         MainThreadStall.observe()
@@ -665,6 +675,7 @@ extension App: NSApplicationDelegate {
         AXUIElement.setGlobalTimeout()
         PreferencesPersistenceCheck.runInBackground()
         LicenseManager.shared.onActivationSucceeded = {
+            guard !LicenseManager.shared.isPersonalBuild else { return }
             DispatchQueue.main.async { ProActivationPopover.show() }
         }
         LicenseManager.shared.onBeforeProUnlock = {
@@ -672,7 +683,7 @@ extension App: NSApplicationDelegate {
         }
         LicenseManager.shared.onStateChanged = { state in
             Menubar.refreshLicenseMenuItems()
-            if !LicenseManager.shared.isMocked {
+            if !LicenseManager.shared.isPersonalBuild && !LicenseManager.shared.isMocked {
                 syncLicenseCookie(state: state)
                 ProTransitionManager.shared.onLicenseStateChanged()
             }
@@ -706,6 +717,7 @@ extension App: NSApplicationDelegate {
     }
 
     private func handleCustomUrl(_ url: URL) {
+        guard !LicenseManager.shared.isPersonalBuild else { return }
         guard url.host == "activate",
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let licenseKey = components.queryItems?.first(where: { $0.name == "license_key" })?.value,

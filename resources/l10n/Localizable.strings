@@ -73,6 +73,12 @@
 /* What remains free after the Pro trial */
 "After that, window switching and thumbnails stay free. Search, extra styles, Auto Size, and additional shortcuts require Pro." = "After that, window switching and thumbnails stay free. Search, extra styles, Auto Size, and additional shortcuts require Pro.";
 
+/* Personal build status */
+"All advanced features enabled" = "All advanced features enabled";
+
+/* Personal build feature */
+"All appearance styles" = "All appearance styles";
+
 /* No comment provided by engineer. */
 "All apps" = "All apps";
 
@@ -190,6 +196,9 @@
 /* No comment provided by engineer. */
 "Automatic activation failed" = "Automatic activation failed";
 
+/* Personal build feature */
+"Automatic panel sizing" = "Automatic panel sizing";
+
 /* Illustration: window.breakfast */
 "Breakfast" = "Breakfast";
 
@@ -298,7 +307,7 @@
 /* Illustration: window.dinner */
 "Dinner" = "Dinner";
 
-/* No comment provided by engineer. */
+/* Personal crash policy */
 "Disabled" = "Disabled";
 
 /* LetsMove replacement alert */
@@ -330,6 +339,9 @@
 
 /* No comment provided by engineer. */
 "e.g. Debug" = "e.g. Debug";
+
+/* Personal feature status */
+"Enabled" = "Enabled";
 
 /* No comment provided by engineer. */
 "End" = "End";
@@ -461,6 +473,9 @@
 /* No comment provided by engineer. */
 "Import settings…" = "Import settings…";
 
+/* Personal build description */
+"Independent personal build based on AltTab’s GPL-3.0 source." = "Independent personal build based on AltTab’s GPL-3.0 source.";
+
 /* No comment provided by engineer. */
 "Invalid license key." = "Invalid license key.";
 
@@ -521,6 +536,9 @@
 /* No comment provided by engineer. */
 "Manage activations, view receipts, etc" = "Manage activations, view receipts, etc";
 
+/* Personal update policy */
+"Manual builds only" = "Manual builds only";
+
 /* No comment provided by engineer. */
 "Maybe later" = "Maybe later";
 
@@ -548,6 +566,9 @@
 /* No comment provided by engineer. */
 "Multiple screens" = "Multiple screens";
 
+/* Personal build feature */
+"Multiple shortcut profiles" = "Multiple shortcut profiles";
+
 /* No comment provided by engineer. */
 "My Account" = "My Account";
 
@@ -559,6 +580,9 @@
 
 /* Permissions window: a step the user hasn't reached yet */
 "Next" = "Next";
+
+/* Personal build status */
+"No license key, trial period, or online activation is required." = "No license key, trial period, or online activation is required.";
 
 /* No comment provided by engineer. */
 "No response from server." = "No response from server.";
@@ -577,6 +601,9 @@
 
 /* Illustration: window.checklist */
 "Notes — List" = "Notes — List";
+
+/* Personal update policy */
+"Official automatic updates are disabled to preserve this personal build." = "Official automatic updates are disabled to preserve this personal build.";
 
 /* No comment provided by engineer. */
 "OK" = "OK";
@@ -715,6 +742,9 @@
 
 /* No comment provided by engineer. */
 "Search" = "Search";
+
+/* Personal build feature */
+"Search windows by app name or title" = "Search windows by app name or title";
 
 /* No comment provided by engineer. */
 "Search — find a window by typing" = "Search — find a window by typing";
